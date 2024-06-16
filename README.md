@@ -2,10 +2,11 @@
 HF electron analysis
 
 Originally from Radjdeep
-cmsrel CMSSW_13_0_7
-cd CMSSW_13_0_7/src
-cmsenv
-git cms-init
+
+cmsrel CMSSW_13_0_7 \
+cd CMSSW_13_0_7/src \
+cmsenv \
+git cms-init \
 git clone git@github.com:seemasharmafnal/HF_Analysis.git
 
 ================================
