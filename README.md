@@ -9,6 +9,7 @@ git cms-init
 git clone git@github.com:seemasharmafnal/HF_Analysis.git
 
 ================================
+
 For making ntuples
 cd HF_Analyzer
 scram b -j32
@@ -21,6 +22,7 @@ Dataset to be used
 The directory FromAvikDas contains codes for saving generator information. Need to import the required part of the codes in plugins/ZEE_RecHit_NTuplizer.cc and test/ZEE_RecHit_AOD_cfg.py
 
 =================================
+
 For analyzing ntuples
 cd HFNtupleAnalysis
 make
