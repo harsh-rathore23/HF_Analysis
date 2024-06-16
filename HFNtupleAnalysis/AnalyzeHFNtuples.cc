@@ -12,9 +12,6 @@ int main(int argc, char* argv[])
 
   if (argc < 2) {
     cerr << "Please give 3 arguments " << "runList " << " " << "outputFileName" << " " << "dataset" << endl;
-    cerr <<" For Z+Jets and Photon+Jets MC samples " << std::endl;
-    cerr <<" zInvPhoton runlistZJets.txt hist_ZJets.root ZJets "<< std::endl;
-    cerr <<" zInvPhoton runlistGJets.txt hist_GJets.root GJets "<< std::endl;
     return -1;
   }
   const char *inputFileList = argv[1];
