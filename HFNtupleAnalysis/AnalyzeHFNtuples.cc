@@ -70,22 +70,26 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
         }
 
         if (nElectrons == 2 && pt->size() > 1 && eta->size() > 1 && phi->size() > 1 && energy->size() > 1) {
-            float emz, ept, eeta, ephi, eEz;
+            float Zmz, Zpt, Zeta, Zphi, ZEz, R, pz;
             TLorentzVector v1, v2, vz;
             v1.SetPtEtaPhiE(pt->at(0), eta->at(0), phi->at(0), energy->at(0));
             v2.SetPtEtaPhiE(pt->at(1), eta->at(1), phi->at(1), energy->at(1));
-            vz = v1 + v2;
-            emz = vz.M();
-            ept = vz.Pt();
-            eeta = vz.Eta();
-            ephi = vz.Phi();
-            eEz = vz.E();
+            vz    = v1 + v2;
+            Zmz   = vz.M();
+            Zpt   = vz.Pt();
+            Zeta  = vz.Eta();
+            Zphi  = vz.Phi();
+            ZEz   = vz.E();
+            pz    = vz.Pz();
+            R     = 0.5*log((ZEz+pz)/(ZEz-pz));
 
-            h_Z_mass->Fill(emz);
-            h_Z_pt->Fill(ept);
-            h_Z_eta->Fill(eeta);
-            h_Z_phi->Fill(ephi);
-            h_Z_Energy->Fill(eEz);
+            h_Z_mass   ->Fill(Zmz);
+            h_Z_pt     ->Fill(Zpt);
+            h_Z_eta    ->Fill(Zeta);
+            h_Z_phi    ->Fill(Zphi);
+            h_Z_Energy ->Fill(ZEz);
+            h_Z_Rapi   ->Fill(R);
+            Rapi_vs_eta->Fill(R,Zeta);
         } 
 
         if (nElectrons == 1 && HFEMClust_pt->size() > 0) {
@@ -105,6 +109,13 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
                     h_Zmass_HFEMClust->Fill(mz);
                 }
             } 
+        }
+
+        for (size_t a = 0; a < Ele_Gen_Pt->size(); a++) {
+            h_Ele_Gen_Pt ->Fill(Ele_Gen_Pt->at(a));
+            h_Ele_Gen_Phi->Fill(Ele_Gen_Phi->at(a));
+            h_Ele_Gen_E->Fill(Ele_Gen_E->at(a));
+            h_Ele_Gen_Eta->Fill(Ele_Gen_Eta->at(a));
         }
     }
 }
