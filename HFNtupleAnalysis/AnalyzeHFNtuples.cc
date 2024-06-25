@@ -51,8 +51,7 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
         nbytes += nb;
 
         hnElectrons.Fill(nElectrons);
-
-        // Check sizes before accessing elements
+        
         int nHFEMClust = HFEMClust_pt->size();
         h_nHFEMClust->Fill(nHFEMClust);
 
