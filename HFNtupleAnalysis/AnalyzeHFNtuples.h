@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include "TF1.h"
 #include "NtupleVariables.h"
 #include "TH1F.h"
 #include "TH2F.h"
@@ -181,12 +182,14 @@ AnalyzeHFNtuples::~AnalyzeHFNtuples() {
   TCanvas *c9 = new TCanvas("c9","distribution of energy gen level e",3600,4200);
   TCanvas *c10= new TCanvas("c10","distribution of eta gen level e",3600,4200);
   TCanvas *c11= new TCanvas("c11","distribution of rapidity of Z boson",3600,4200);
-  c11->Divide(2,1);
-
   TCanvas *c12= new TCanvas("c12","distribution of rapidity vs eta of Z boson",3600,4200);
 
+ 
 
-  
+  /*TF1 *funct = new TF1("mybw2",mybw,massMIN, massMAX,3);
+  h_Zmass_HFEMClust ->Fit("mybw2","QR");
+  TF1 *fit = h_Zmass_HFEMClust ->GetFunction("mybw2");*/
+
   c1->cd();
   h_Z_mass ->Draw();
   c2->cd();
@@ -207,10 +210,8 @@ AnalyzeHFNtuples::~AnalyzeHFNtuples() {
   h_Ele_Gen_E->Draw();
   c10->cd();
   h_Ele_Gen_Eta->Draw();  
-  c11->cd(1);
+  c11->cd();
   h_Z_Rapi->Draw();
-  c11->cd(2);
-  h_Z_eta ->Draw();
   c12->cd();
   gStyle->SetPalette(1);
   Rapi_vs_eta->Draw("colz");
@@ -227,7 +228,22 @@ AnalyzeHFNtuples::~AnalyzeHFNtuples() {
    c9 -> SaveAs("Ele_Gen_E.pdf");                     
    c10-> SaveAs("Ele_Gen_Eta.pdf");    
    c11-> SaveAs("Z_Rapidity.pdf");     
-   c12-> SaveAs("Rapi_vs_eta.pdf");            
+   c12-> SaveAs("Rapi_vs_eta.pdf");     
+
+   c2->cd();
+   h_Z_pt->GetYaxis()->SetTitle("log(Y)");
+   h_Z_pt->Draw();
+   c2->SetLogy();
+   c2->SaveAs("log_pt.pdf");
+
+   
+   c5->cd();
+   h_Z_Energy->GetYaxis()->SetTitle("log(Y)");
+   h_Z_Energy ->Draw();
+   c5->SetLogy();
+   c5->SetTitle("energy distribution in log scale of Z boson");
+   c5->SaveAs("log_energy.pdf");
+
   if (!fChain) return;
   delete fChain->GetCurrentFile();
   oFile->cd();
