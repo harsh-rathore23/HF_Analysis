@@ -56,40 +56,44 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
         h_nHFEMClust->Fill(nHFEMClust);
 
         for (size_t a = 0; a < pt->size(); a++) {
-            hpt->Fill(pt->at(a));
-            heta->Fill(eta->at(a));
-            hphi->Fill(phi->at(a));
+            hpt  -> Fill(pt->at(a));
+            heta -> Fill(eta->at(a));
+            hphi -> Fill(phi->at(a));
         }
 
      
         if (pt->size() > 0) {
-            int pt1 = pt->at(0);
-            int pt2 = (pt->size() > 1) ? pt->at(1) : 0;
-            h_pt_e1->Fill(pt1);
-            h_pt_e2->Fill(pt2);
+            int pt1   =   pt->at(0);
+            int pt2   =  (pt->size() > 1) ? pt->at(1) : 0;
+            h_pt_e1  ->  Fill(pt1);
+            h_pt_e2  ->  Fill(pt2);
         }
        
         if (nElectrons == 2) {
-            float Zmz, Zpt, Zeta, Zphi, ZEz, R, pz;
+            float Zmz, Zpt, Zeta, Zphi, ZEz, R, pz, P ,Ratio1 ,Ratio2;
             TLorentzVector v1, v2, vz;
             v1.SetPtEtaPhiE(pt->at(0), eta->at(0), phi->at(0), energy->at(0));
             v2.SetPtEtaPhiE(pt->at(1), eta->at(1), phi->at(1), energy->at(1));
-            vz    = v1 + v2;
-            Zmz   = vz.M();
-            Zpt   = vz.Pt();
-            Zeta  = vz.Eta();
-            Zphi  = vz.Phi();
-            ZEz   = vz.E();
-            pz    = vz.Pz();
-            R     = 0.5*log((ZEz+pz)/(ZEz-pz));
+            vz            =   v1 + v2;
+            Zmz           =   vz.M();
+            Zpt           =   vz.Pt();
+            Zeta          =   vz.Eta();
+            Zphi          =   vz.Phi();
+            ZEz           =   vz.E();
+            pz            =   vz.Pz();
+            P             =   vz.P();
+            R             =   0.5*log((ZEz+pz)/(ZEz-pz));
+            Ratio1        =   Zeta/R;
+            Ratio2        =   P/ZEz;
 
-            h_Z_mass   ->Fill(Zmz);
-            h_Z_pt     ->Fill(Zpt);
-            h_Z_eta    ->Fill(Zeta);
-            h_Z_phi    ->Fill(Zphi);
-            h_Z_Energy ->Fill(ZEz);
-            h_Z_Rapi   ->Fill(R);
-            Rapi_vs_eta->Fill(R,Zeta);
+            h_Z_mass     ->  Fill(Zmz);
+            h_Z_pt       ->  Fill(Zpt);
+            h_Z_eta      ->  Fill(Zeta);
+            h_Z_phi      ->  Fill(Zphi);
+            h_Z_Energy   ->  Fill(ZEz);
+            h_Z_Rapi     ->  Fill(R);
+            Rapi_vs_eta  ->  Fill(R,Zeta);
+            h_test       ->  Fill(Ratio1,Ratio2);
         } 
 
         if (nElectrons == 1 && HFEMClust_pt->size() > 0) 
@@ -106,10 +110,10 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
         }
 
         for (size_t a = 0; a < Ele_Gen_Pt->size(); a++) {
-            h_Ele_Gen_Pt ->Fill(Ele_Gen_Pt->at(a));
-            h_Ele_Gen_Phi->Fill(Ele_Gen_Phi->at(a));
-            h_Ele_Gen_E->Fill(Ele_Gen_E->at(a));
-            h_Ele_Gen_Eta->Fill(Ele_Gen_Eta->at(a));
+            h_Ele_Gen_Pt   ->  Fill(Ele_Gen_Pt->at(a));
+            h_Ele_Gen_Phi  ->  Fill(Ele_Gen_Phi->at(a));
+            h_Ele_Gen_E    ->  Fill(Ele_Gen_E->at(a));
+            h_Ele_Gen_Eta  ->  Fill(Ele_Gen_Eta->at(a));
         }
     }
 }
