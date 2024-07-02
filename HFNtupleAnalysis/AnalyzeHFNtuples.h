@@ -205,7 +205,7 @@ c13->SetLeftMargin(0.15);
 
 // Breit Wigner Fitting
  
-  double massMIN1=70;
+  double massMIN1=73;
   double massMAX1=130;
   //TF1 *funct = new TF1("mybw2",mybw,massMIN, massMAX,3);
   TF1 *funct1 = new TF1("mybw1","[0] / (TMath::Pi() * 2) * [2] / ((x - [1])*(x - [1]) + ([2]*[2]/4))", massMIN1, massMAX1);
