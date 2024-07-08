@@ -86,6 +86,14 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
             Ratio1        =   Zeta/R;
             Ratio2        =   P/ZEz;
 
+            // boosting electrons in another frame
+            float Theta;
+            TVector3 b=vz.BoostVector();
+            
+            v1.Boost(-b);
+            v2.Boost(-b);
+            Theta=v1.Angle(v2.Vect());
+
             h_Z_mass     ->  Fill(Zmz);
             h_Z_pt       ->  Fill(Zpt);
             h_Z_eta      ->  Fill(Zeta);
@@ -94,6 +102,7 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
             h_Z_Rapi     ->  Fill(R);
             Rapi_vs_eta  ->  Fill(R,Zeta);
             h_test       ->  Fill(Ratio1,Ratio2);
+            angle_e_Zf   ->  Fill(Theta);
         } 
 
         if (nElectrons == 1 && HFEMClust_pt->size() > 0) 
@@ -107,7 +116,7 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
                     mz = vz.M();
                     h_Zmass_HFEMClust->Fill(mz);
                 }
-        }
+          }
 
         for (size_t a = 0; a < Ele_Gen_Pt->size(); a++) {
             h_Ele_Gen_Pt   ->  Fill(Ele_Gen_Pt->at(a));
@@ -115,5 +124,23 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
             h_Ele_Gen_E    ->  Fill(Ele_Gen_E->at(a));
             h_Ele_Gen_Eta  ->  Fill(Ele_Gen_Eta->at(a));
         }
+
+          for(int i=0 ; i<HFEMClust_eLong3x3->size();i++)
+          {
+          h_HFEMClust_eLong3x3  ->Fill(HFEMClust_eLong3x3->at(i));
+          h_HFEMClust_eShort3x3 ->Fill(HFEMClust_eShort3x3->at(i));  
+          h_HFEMClust_eLong5x5  ->Fill(HFEMClust_eLong5x5->at(i));  
+          h_HFEMClust_eShort5x5 ->Fill(HFEMClust_eShort5x5->at(i));  
+
+          float w,q;
+          w=(HFEMClust_eLong3x3->at(i))/(HFEMClust_eLong5x5->at(i));
+          q=(HFEMClust_eShort3x3->at(i))/(HFEMClust_eShort5x5->at(i));
+          
+          h_test_long           ->Fill(w);
+          h_test_short          ->Fill(q);
+
+          R->Fill(((HFEMClust_eLong1x1->at(i))-(HFEMClust_eShort1x1->at(i)))/((HFEMClust_eLong1x1->at(i))+(HFEMClust_eShort1x1->at(i))));
+          }
+          
     }
 }

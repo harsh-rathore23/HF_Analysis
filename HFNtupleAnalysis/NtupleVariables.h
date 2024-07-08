@@ -85,9 +85,9 @@ public :
    vector<float>   *HFEMClust_energy;
    vector<float>   *HFEMClust_eLong1x1;
    vector<float>   *HFEMClust_eShort1x1;
-   vector<float>   *HFEMClust_eLong3x3;
+   vector<float>   *HFEMClust_eLong3x3; 
    vector<float>   *HFEMClust_eShort3x3;
-   vector<float>   *HFEMClust_eLong5x5;
+   vector<float>   *HFEMClust_eLong5x5; 
    vector<float>   *HFEMClust_eShort5x5;
    vector<float>   *HFEMClust_e1x1;
    vector<float>   *HFEMClust_e3x3;
