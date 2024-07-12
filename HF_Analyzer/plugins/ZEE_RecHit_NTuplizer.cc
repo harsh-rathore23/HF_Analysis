@@ -204,6 +204,7 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
 
      std::vector<int> isTrue_;
 
+
       // -----------------Handles--------------------------
       edm::Handle<EcalRecHitCollection> EBRechitsHandle;
       edm::Handle<EcalRecHitCollection> EERechitsHandle;
