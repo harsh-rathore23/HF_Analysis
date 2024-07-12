@@ -136,9 +136,9 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
           w=(HFEMClust_eLong3x3->at(i))/(HFEMClust_eLong5x5->at(i));
           q=(HFEMClust_eShort3x3->at(i))/(HFEMClust_eShort5x5->at(i));
   
-          h_test_long           -> Fill(w);
-          h_test_short          -> Fill(q);
-          R                     -> Fill(((HFEMClust_eLong1x1->at(i))-(HFEMClust_eShort1x1->at(i)))/((HFEMClust_eLong1x1->at(i))+(HFEMClust_eShort1x1->at(i))));
+          h_test_long    -> Fill(w);
+          h_test_short   -> Fill(q);
+          R              -> Fill(((HFEMClust_eLong1x1->at(i))-(HFEMClust_eShort1x1->at(i)))/((HFEMClust_eLong1x1->at(i))+(HFEMClust_eShort1x1->at(i))));
           }
           
     }

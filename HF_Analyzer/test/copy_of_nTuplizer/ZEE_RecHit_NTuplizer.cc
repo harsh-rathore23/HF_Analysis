@@ -76,10 +76,7 @@
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/EgammaReco/interface/HFEMClusterShapeAssociation.h"
 #include "DataFormats/EgammaReco/interface/HFEMClusterShape.h"
-
-//////////////////////Added by Harsh////////////////////////////////////
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-////////////////////////////////////////////////////////////////////////
+using namespace std;
 
 //
 //
@@ -91,9 +88,6 @@
 // from  edm::one::EDAnalyzer<>
 // This will improve performance in multithreaded jobs.
 
-using namespace edm;
-using namespace std;
-using namespace reco;
 
 using reco::TrackCollection;
 
@@ -132,18 +126,15 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
 
 //   clear the vectors 
      void ClearTreeVectors();
-
 // ----------member data ---------------------------
      TTree* T;
      // Variables for Run info.
      int run;
      int event;
      int lumi;
-     int n=0;
      // Electron variables
      int nElectrons_;
      Float_t rho;
-
      std::vector<float> iEta[2];
      std::vector<float> iPhi[2];
      std::vector<float> Hit_Eta[2];
@@ -214,15 +205,6 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
 
      std::vector<int> isTrue_;
 
-// added by Harsh
-////////Defining variables for property of Z Boson////////
-      
-     std::vector<float> Z_Truth_Pt;
-     std::vector<float> Z_Truth_Eta;
-     std::vector<float> Z_Truth_Phi;
-     std::vector<float> Z_Truth_E;
-//////////////////////////////////////////////////////////
-
       // -----------------Handles--------------------------
       edm::Handle<EcalRecHitCollection> EBRechitsHandle;
       edm::Handle<EcalRecHitCollection> EERechitsHandle;
@@ -231,17 +213,6 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
       edm::Handle<reco::SuperClusterCollection> HFSC;
       edm::Handle<reco::HFEMClusterShapeAssociationCollection> HFClusterCollection;
       edm::Handle<edm::View<reco::GsfElectron> > electrons;  
-
-
-      ///////////////////////////////////////////////////////////////////////////////////////added by Harsh
-      edm::Handle<GenEventInfoProduct> xhandle;
-      edm::Handle<edm::View<reco::GenParticle> >gphandle;
-      /////////////Z peak///////////////////////////////////////
-      edm::Handle<reco::GenParticleCollection> gpchandle;
-      ////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 //      edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
 //      edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
 //      edm::Handle<edm::View<reco::GenParticle> > genParticles;
@@ -253,14 +224,6 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
       edm::EDGetTokenT<reco::SuperClusterCollection> HFSCToken_;
       edm::EDGetTokenT<reco::HFEMClusterShapeAssociationCollection> HFClusterToken_;
       edm::EDGetToken electronsToken_;
-
-      ////////////////added by Harsh///////////////////
-      edm::EDGetTokenT<GenEventInfoProduct> xtoken_;
-      edm::EDGetTokenT<edm::View<reco::GenParticle> > gptoken_;
-      edm::EDGetTokenT<reco::GenParticleCollection> gpctoken_;
-      /////////////////////////////////////////////////
-
-
 //      edm::EDGetTokenT<edm::View<reco::GenParticle> > genParticlesToken_;
 //      edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
 //      edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
@@ -279,32 +242,19 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
 //
 // constructors and destructor
 //
-
-
-
 ZEE_RecHit_NTuplizer::ZEE_RecHit_NTuplizer(const edm::ParameterSet& iConfig):
    recHitCollectionEBToken_(consumes<EcalRecHitCollection>(edm::InputTag("reducedEcalRecHitsEB"))),
    recHitCollectionEEToken_(consumes<EcalRecHitCollection>(edm::InputTag("reducedEcalRecHitsEE"))),
    recHitCollectionESToken_(consumes<EcalRecHitCollection>(edm::InputTag("reducedEcalRecHitsES"))),
    HFElectronsToken_(consumes<reco::RecoEcalCandidateCollection>(edm::InputTag("hfRecoEcalCandidate"))),
    HFSCToken_(consumes<reco::SuperClusterCollection>(edm::InputTag("hfEMClusters"))),
-   HFClusterToken_(consumes<reco::HFEMClusterShapeAssociationCollection>(edm::InputTag("hfEMClusters"))),
-   ///////added by Harsh/////
-   xtoken_(consumes<GenEventInfoProduct>(edm::InputTag("generator"))),
-   gpctoken_(consumes<reco::GenParticleCollection>(edm::InputTag("genParticles")))
-   //////////////////////////
-
+   HFClusterToken_(consumes<reco::HFEMClusterShapeAssociationCollection>(edm::InputTag("hfEMClusters"))) 
+{
    //now do what ever initialization is needed
-
-   //added by Harsh
- {  gptoken_ = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
-   ///////////////////////////////////////////
-
-
    electronsToken_ = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electrons"));
 //   genParticlesToken_ = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
    usesResource("TFileService");
- }
+}
 
 
 ZEE_RecHit_NTuplizer::~ZEE_RecHit_NTuplizer()
@@ -324,7 +274,8 @@ ZEE_RecHit_NTuplizer::~ZEE_RecHit_NTuplizer()
 //
 
 // ------------ method called for each event  ------------
-void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void
+ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
    using namespace std;
@@ -338,25 +289,9 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
    iEvent.getByToken(HFClusterToken_, HFClusterCollection);
    iEvent.getByToken(electronsToken_, electrons);
 
-
-
-   ///////added by Harsh///////
-   	//std::cout<<"This is simulated data. Finding the Generator level information"<<std::endl;
- 
-   	iEvent.getByToken(xtoken_, xhandle);
-   	iEvent.getByToken(gptoken_, gphandle);
-	iEvent.getByToken(gpctoken_,gpchandle);
-   ////////////////////////////
-
-
-
 //Clear all vectors to be written to the tree
    ClearTreeVectors();
    run=0;  event=0;  lumi=0;
-
-   //added by Harsh//
-  
-   //////////////////
 
 ///////////////////////////Fill Electron/Photon related stuff/////////////////////////////////////////////////////
    nElectrons_ = 0;
@@ -417,53 +352,6 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
         HFEMClust_eCore_.push_back(clusShape.eCore());
 
    }
-
-
-   //////////////////////////////////////Added by Harsh//////////////////////////////////////////////////////////////////////////////////
- //const reco::GenParticle* z_boson=nullptr;
-for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphandle->end(); ++part){
-		if(abs(part ->pdgId())==11 && part ->mother()->pdgId()==23){
-			Ele_Gen_Pt.push_back(part->pt());
-			Ele_Gen_Eta.push_back(part->eta());
-			Ele_Gen_Phi.push_back(part->phi());
-			Ele_Gen_E.push_back(part->energy());
-                 //       cout<<"Electron "<<"Pt: "<<part->pt()<<"    MotherID: "<<part->mother()->pdgId()<<"    Status:"<< part-> status()<<endl;
-			}
-
-                if(part ->pdgId()==11 && part->mother()->pt()!=0 && part->mother()->pdgId()==23)
-                {  Z_Truth_Pt.push_back(part->mother()->pt());
-                   Z_Truth_Eta.push_back(part->mother()->eta());
-                   Z_Truth_Phi.push_back(part->mother()->phi());
-                   Z_Truth_E.push_back(part->mother()->energy());
-                       
-                if(part->phi()==0 && part->pt()==0)       //       
-                {cout<<"Phi: "<<part->mother()->phi()<<"     pt:"<<part->mother()->pt()<<"             eta:"<<part->mother()->eta()<<"          MotherID: "<<part->mother()->mother()->pdgId()<<"            Status:"<< part->mother()->status()<<"     " << n <<endl;
-                  n=n+1;
-                }
-                }
-		}
-/*
-const reco::GenParticle* z_boson=nullptr;
-////Code block: To find the True Z////////////////
-        for (unsigned int k = 0; k <gpchandle->size(); ++k){
-        
-                const reco::GenParticle* gpart1 = &gpchandle->at(k);
-                //cout<<"gpart pdgId: "<<gpart1->pdgId()<<endl;
-                if (gpart1->pdgId()==23 && z_boson == nullptr){
-                        z_boson = gpart1;
-        //        }
-        //        if(z_boson != nullptr){
-                        Z_Truth_Pt.push_back(z_boson->pt());
-                        Z_Truth_Eta.push_back(z_boson->eta());
-                        Z_Truth_Phi.push_back(z_boson->phi());
-                        Z_Truth_E.push_back(z_boson->energy());
-                }
-        
-        }
-*/
-
-
-   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -566,28 +454,17 @@ ZEE_RecHit_NTuplizer::beginJob()
         T->Branch("HFEMClust_eCOREe9", &HFEMClust_eCOREe9_);
         T->Branch("HFEMClust_e9e25", &HFEMClust_e9e25_);
         T->Branch("HFEMClust_eCore", &HFEMClust_eCore_);
-/*	
+	
         T->Branch("Ele_Gen_Pt" , &Ele_Gen_Pt);
         T->Branch("Ele_Gen_Eta" , &Ele_Gen_Eta);
         T->Branch("Ele_Gen_Phi" , &Ele_Gen_Phi);
         T->Branch("Ele_Gen_E" , &Ele_Gen_E);
-  */
+
         T->Branch("rho", &rho, "rho/F");
 
         T->Branch("run",&run,"run/I");
         T->Branch("event",&event,"event/I");
         T->Branch("lumi",&lumi,"lumi/I");
-
-        ////////////added by Harsh////////////
-                T->Branch("Ele_Gen_Pt" , &Ele_Gen_Pt);
-                T->Branch("Ele_Gen_Eta" , &Ele_Gen_Eta);
-                T->Branch("Ele_Gen_Phi" , &Ele_Gen_Phi);
-                T->Branch("Ele_Gen_E" , &Ele_Gen_E);
-
-                T->Branch("ZTruth_Pt", &Z_Truth_Pt);
-                T->Branch("ZTruth_Eta", &Z_Truth_Eta);
-                T->Branch("ZTruth_Phi", &Z_Truth_Phi);
-                T->Branch("ZTruth_E", &Z_Truth_E);
 
 }
 
@@ -645,9 +522,6 @@ void ZEE_RecHit_NTuplizer::GetESPlaneRecHits(const reco::SuperCluster& sc, const
 
  //       return RawenergyPlane;
 }
-
-
-
 
 
 //Clear tree vectors each time analyze method is called
@@ -727,25 +601,11 @@ void ZEE_RecHit_NTuplizer::ClearTreeVectors()
 	HFEMClust_e9e25_.clear(); 
 	HFEMClust_eCore_.clear();
 
-/*
-        Ele_Gen_Pt.clear();
-	Ele_Gen_Eta.clear();
-	Ele_Gen_Phi.clear();
-	Ele_Gen_E.clear();
-*/
 
-/////////////////////added by Harsh////////////////////
 	Ele_Gen_Pt.clear();
 	Ele_Gen_Eta.clear();
 	Ele_Gen_Phi.clear();
 	Ele_Gen_E.clear();
-
-        Z_Truth_Pt.clear();
-        Z_Truth_Eta.clear();
-        Z_Truth_Phi.clear();
-        Z_Truth_E.clear();
-///////////////////////////////////////////////////////
-
 
 	passMediumId_.clear();
 	passTightId_ .clear();

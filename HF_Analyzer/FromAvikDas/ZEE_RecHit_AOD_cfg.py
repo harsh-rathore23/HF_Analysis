@@ -19,7 +19,7 @@ options.register('inputFile',
         VarParsing.VarParsing.varType.string,
         "File containing a list of the EXACT location of the output file  (default = ~/)"
         )
-
+ #print(" it is printing ")
 
 options.parseArguments()
 options.inputFile = 'root://eoscms//' + options.inputFile
@@ -104,8 +104,8 @@ process.nTuplelize = cms.EDAnalyzer('ZEE_RecHit_NTuplizer',
 #	isMC=cms.bool(checksim)
 	genParticles = cms.InputTag("genParticles"),
 	isMC=cms.bool(True)
+       
 	)
-
 
 process.TFileService = cms.Service("TFileService",
      fileName = cms.string("nTuple_MC.root"),

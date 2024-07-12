@@ -82,13 +82,17 @@ process.GlobalTag = cms.ESSource("PoolDBESSource",
 
 
 process.nTuplelize = cms.EDAnalyzer('ZEE_RecHit_NTuplizer',
-        electrons = cms.InputTag("gedGsfElectrons")
+        electrons = cms.InputTag("gedGsfElectrons"),
+    #########added by Harsh
+        genParticles = cms.InputTag("genParticles"),
+	#isMC=cms.bool(True)
+    ########
 	)
 
 
 process.TFileService = cms.Service("TFileService",
-     fileName = cms.string("nTuple_MC.root"),
-#     fileName = cms.string("Tree_Gamma_ABCD.root"),
+     fileName = cms.string("nTuple_MC2.root"),
+#     fileName = cms.string("Tree_Gamma_ABCD2.root"),
       closeFileFast = cms.untracked.bool(True)
   )
 
