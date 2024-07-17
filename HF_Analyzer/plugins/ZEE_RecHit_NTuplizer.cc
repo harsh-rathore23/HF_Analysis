@@ -321,7 +321,7 @@ ZEE_RecHit_NTuplizer::ZEE_RecHit_NTuplizer(const edm::ParameterSet& iConfig):
 //   genParticlesToken_ = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
    usesResource("TFileService");
 
-    outFile.open("zee_properties.txt");
+    outFile.open("zee_sem_events.txt");
     if (!outFile) {
         std::cerr << "Error opening file output.txt for writing!" << std::endl;
     }
@@ -352,7 +352,7 @@ ZEE_RecHit_NTuplizer::~ZEE_RecHit_NTuplizer()
 
 int number=0;
 int p=0;
-
+bool v=false;
 
 
 
@@ -460,6 +460,7 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
                 <<endl;
 //            <<"  event  :    "<<iEvent.id().event()<<endl;
                   }*/
+                 
  
 for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphandle->end(); ++part){
 		if(abs(part ->pdgId())==11 && part ->mother()->pdgId()==23){
@@ -482,7 +483,8 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
                 if(part->pdgId()==23 && nDZs==2 && ((part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)||(part->daughter(0)->pdgId()==-11 && part->daughter(1)->pdgId()==11))){ 
                          
         //        if((part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)||(part->daughter(0)->pdgId()==-11 && part->daughter(1)->pdgId()==11))
-                outFile<<"S no."<<"\t"<<"Entry"
+                if(v==false && p<15)
+                {outFile<<"S no."<<"\t"<<"Entry"
                        <<"\t"<<"pdgId" 
                        <<"\t"<<"status"              
                        <<"\t"<<"pt"
@@ -493,7 +495,10 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
                        <<"\t\t"<<"Daughter Id"
                        <<endl;
 //                     <<"  event  :    "<<iEvent.id().event()<<endl;
-                 outFile<<number
+                       v=true;
+                }}
+                 if(v==true){
+                        outFile<<number
                         <<"\t"<<setprecision(2)<<p
                         <<"\t"<<setprecision(2)<<part->pdgId()
                         <<"\t"<<setprecision(2)<<part->status()
@@ -524,7 +529,7 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
                         outFile<<endl;
 
                     number = number + 1;
-                    p      = p+1;
+         //           p      = p+1;
                     }
                 
                 
@@ -680,6 +685,11 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
         */
         
         
+}
+if(v==true){
+        outFile<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
+        v=false;
+        p=p+1;
 }
  
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
