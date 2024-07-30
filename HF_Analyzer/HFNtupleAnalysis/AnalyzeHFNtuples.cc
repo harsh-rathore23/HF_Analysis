@@ -62,11 +62,23 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
         }
 
      
-        if (pt->size() > 0) {
-            int pt1   =   pt->at(0);
-            int pt2   =  (pt->size() > 1) ? pt->at(1) : 0;
-            h_pt_e1  ->  Fill(pt1);
-            h_pt_e2  ->  Fill(pt2);
+        if (Ele_Gen_Pt->size() > 0) {
+            int pt1,pt2,eta1,eta2;
+            if(Ele_Gen_Pt->at(0)>Ele_Gen_Pt->at(1)){
+                  pt1  = Ele_Gen_Pt->at(0);
+                  pt2  = Ele_Gen_Pt->at(1);
+                  eta1 = Ele_Gen_Eta->at(0);
+                  eta2 = Ele_Gen_Eta->at(1);
+            }
+            else{ pt1  = Ele_Gen_Pt->at(1);
+                  pt2  = Ele_Gen_Pt->at(0);
+                  eta1 = Ele_Gen_Eta->at(1);
+                  eta2 = Ele_Gen_Eta->at(0);}
+                 
+            h_pt_e1      ->  Fill(pt1);
+            h_pt_e2      ->  Fill(pt2);
+            pt1_vs_pt2   ->  Fill(pt2,pt1);
+            eta1_vs_eta2 ->  Fill(eta2,eta1);
         }
        
         if (nElectrons == 2) {

@@ -813,10 +813,10 @@ ZEE_RecHit_NTuplizer::beginJob()
                 T->Branch("Ele_Gen_Phi" , &Ele_Gen_Phi);
                 T->Branch("Ele_Gen_E" , &Ele_Gen_E);
 
-                T->Branch("ZTruth_e_Pt", &Z_Truth_e_Pt);
-                T->Branch("ZTruth_e_Eta", &Z_Truth_e_Eta);
-                T->Branch("ZTruth_e_Phi", &Z_Truth_e_Phi);
-                T->Branch("ZTruth_e_E", &Z_Truth_e_E);
+                T->Branch("Z_Truth_e_Pt", &Z_Truth_e_Pt);
+                T->Branch("Z_Truth_e_Eta", &Z_Truth_e_Eta);
+                T->Branch("Z_Truth_e_Phi", &Z_Truth_e_Phi);
+                T->Branch("Z_Truth_e_E", &Z_Truth_e_E);
 
                 T->Branch("Z_Truth_all_Pt", &Z_Truth_all_Pt); 
                 T->Branch("Z_Truth_all_Eta", &Z_Truth_all_Eta);
