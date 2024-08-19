@@ -20,6 +20,7 @@
 // system include files
 #include <memory>
 #include <iostream>
+#include <fstream>
 #include "TTree.h"
 #include "Math/VectorUtil.h"
 #include "TFile.h"
@@ -99,6 +100,8 @@ using reco::TrackCollection;
 
 class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
    public:
+
+   
       explicit ZEE_RecHit_NTuplizer(const edm::ParameterSet&);
       ~ZEE_RecHit_NTuplizer();
 
@@ -117,7 +120,7 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
       virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
       virtual void endJob() override;
 
-
+      std::ofstream outFile;
 //   cluster tools
       EcalClusterLazyTools *clustertools;
       noZS::EcalClusterLazyTools *clustertools_NoZS;
@@ -130,6 +133,19 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
 //     std::vector<GlobalPoint> GetESPlaneRecHits(const reco::SuperCluster& sc, unsigned int planeIndex) const;
      void GetESPlaneRecHits(const reco::SuperCluster& sc, const CaloGeometry* &geo, unsigned int elenum, unsigned int planeIndex);
 
+    /* // Load track and RecHit input tags
+   trackCollectionTag_ = ps.getParameter<edm::InputTag>("Tracks"); //  <=used in evt.getBylabel(trackCollectionTag_,tracksH); below
+   loadTracks_ = ps.getParameter<bool>("LoadTracks");              //  <=checks for loaded track collection, below 
+   EBRechitsHandle = ps.getParameter<edm::InputTag>("EBRecHits");  // <=used by  evt.getByLabel(ebRecHitsTag_, ebRecHitsH_); below
+   EERechitsHandle = ps.getParameter<edm::InputTag>("EERecHits");  // <=used by  evt.getByLabel(eeRecHitsTag_, eeRecHitsH_); below
+   
+     std::vector<std::string> ebSct = ps.getParameter<std::vector<std::string> >("EBSuperClusters");
+   for(std::vector<std::string>::const_iterator it = ebSct.begin(); it != ebSct.end(); ++it)
+   {
+      ebSuperClusterTags_.push_back(edm::InputTag(*it));
+   }
+
+*/
 //   clear the vectors 
      void ClearTreeVectors();
 
@@ -144,17 +160,17 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
      int nElectrons_;
      Float_t rho;
 
-     std::vector<float> iEta[2];
-     std::vector<float> iPhi[2];
-     std::vector<float> Hit_Eta[2];
-     std::vector<float> Hit_Phi[2];
-     std::vector<float> Hit_X[2];
-     std::vector<float> Hit_Y[2];
-     std::vector<float> Hit_Z[2];
-
-
-     std::vector<float> RecHitFrac[2];
-     std::vector<float> RecHitEn[2];
+     std::vector<float> iEta[2];        
+     std::vector<float> iPhi[2];        
+     std::vector<float> Hit_Eta[2];       
+     std::vector<float> Hit_Phi[2];              
+     std::vector<float> Hit_X[2];       
+     std::vector<float> Hit_Y[2];               
+     std::vector<float> Hit_Z[2];       
+                                            
+                                            
+     std::vector<float> RecHitFrac[2];              
+     std::vector<float> RecHitEn[2];                        
 
      std::vector<float> Ele_pt_;
      std::vector<float> Ele_eta_;
@@ -251,8 +267,6 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
       ///////////////////////////////////////////////////////////////////////////////////////added by Harsh
       edm::Handle<GenEventInfoProduct> xhandle;
       edm::Handle<edm::View<reco::GenParticle> >gphandle;
-      /////////////Z peak///////////////////////////////////////
-      edm::Handle<reco::GenParticleCollection> gpchandle;
       ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -319,12 +333,20 @@ ZEE_RecHit_NTuplizer::ZEE_RecHit_NTuplizer(const edm::ParameterSet& iConfig):
    electronsToken_ = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electrons"));
 //   genParticlesToken_ = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
    usesResource("TFileService");
+
+    outFile.open("zee_sem_events.txt");
+    if (!outFile) {
+        std::cerr << "Error opening file output.txt for writing!" << std::endl;
+    }
+
  }
 
 
 ZEE_RecHit_NTuplizer::~ZEE_RecHit_NTuplizer()
 {
-
+    if (outFile.is_open()) {
+            outFile.close();}
+   
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
 
@@ -339,6 +361,14 @@ ZEE_RecHit_NTuplizer::~ZEE_RecHit_NTuplizer()
 //
 
 // ------------ method called for each event  ------------
+
+
+int number=0;
+int p=0;
+bool v=false;
+
+
+
 void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
@@ -360,7 +390,6 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
  
    	iEvent.getByToken(xtoken_, xhandle);
    	iEvent.getByToken(gptoken_, gphandle);
-	iEvent.getByToken(gpctoken_,gpchandle);
    ////////////////////////////
 
 
@@ -369,13 +398,79 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
    ClearTreeVectors();
    run=0;  event=0;  lumi=0;
 
-   //added by Harsh//
-  
-   //////////////////
-
 ///////////////////////////Fill Electron/Photon related stuff/////////////////////////////////////////////////////
-   nElectrons_ = 0;
+   //EEDetId *EEDID;
+    /*ebRecHits_ = EBRechitsHandle.product();
+    eeRecHits_ = EERechitsHandle.product();
 
+      iSetup.get<CaloGeometryRecord>().get(geometry_);
+      iSetup.get<CaloTopologyRecord>().get(topology_);
+
+// Barrel SuperClusters
+   for(unsigned int i = 0; i < ebSuperClusterTags_.size(); ++i)
+   {
+         // Get the track collection
+   edm::Handle<TrackCollection> tracksH;
+   if(loadTracks_)
+   {
+      evt.getByLabel(trackCollectionTag_, tracksH);
+   }
+      edm::Handle<SuperClusterCollection> clustersH;
+      evt.getByLabel(ebSuperClusterTags_[i], clustersH);
+      DoSuperClusterAnalysisEB(*clustersH, *tracksH, evt, ebSuperClusterHists1D_[i], ebSuperClusterHists2D_[i]);
+   }
+   // Endcap SuperClusters
+   for(unsigned int i = 0; i < eeSuperClusterTags_.size(); ++i)
+   {
+      edm::Handle<SuperClusterCollection> clustersH;
+      evt.getByLabel(eeSuperClusterTags_[i], clustersH);
+      DoSuperClusterAnalysisEE(*clustersH, *tracksH, evt, eeSuperClusterHists1D_[i], eeSuperClusterHists2D_[i]);
+   }*/
+ EBDetId *EBDID;
+ //EEDID = EEDetId((*digiItr).id());
+ /*for ( EcalRecHitCollection::const_iterator ecalItr= EBRechitsHandle->begin();  ecalItr != EBRechitsHandle->end();  ++ecalItr ) 
+        {   EBDID = new EBDetId((*ecalItr).id());
+    
+                // for(size_t k=0; k<EBRechitsHandle->size(); k++){
+                for(int k=0; k<2; k++){
+                  iEta[k].push_back(EBDID->ieta());      
+                  iPhi[k].push_back(EBDID->iphi());  
+                //  Hit_Eta[k].push_back(EBDID->tower_ieta());   
+                //  Hit_Phi[k].push_back(EBDID->tower_iphi());   
+                //  Hit_X[k].push_back(EBDID->crystal_ix());     
+                //  Hit_Y[k].push_back(EBDID->crystal_iy());     
+                //  Hit_Z[k].push_back(EBDID->crystal_iz());                  
+                //  RecHitFrac[k].push_back(EBDID->);
+                //RecHitEn[k].push_back(EBDID->energy());  
+                }
+        }*/
+/*   for (size_t x=0; x<EERechitsHandle->size(); ++x){
+        const auto EE = EERechitsHandle->ptrAt(i);
+   iEta[2].push_back();      
+   iPhi[2].push_back();      
+   Hit_Eta[2].push_back();   
+   Hit_Phi[2].push_back();   
+   Hit_X[2].push_back();     
+   Hit_Y[2].push_back();     
+   Hit_Z[2].push_back();                  
+   RecHitFrac[2].push_back();
+   RecHitEn[2].push_back();          
+   }
+
+   for (size_t y=0; y<ESRechitsHandle->size(); ++y){
+        const auto ES = ESRechitsHandle->ptrAt(i);
+   iEta[2].push_back();      
+   iPhi[2].push_back();      
+   Hit_Eta[2].push_back();   
+   Hit_Phi[2].push_back();   
+   Hit_X[2].push_back();     
+   Hit_Y[2].push_back();     
+   Hit_Z[2].push_back();                  
+   RecHitFrac[2].push_back();
+   RecHitEn[2].push_back();          
+   }
+*/
+   nElectrons_ = 0;
    for (size_t i = 0; i < electrons->size(); ++i){
 	if(electrons->size() > 2) break;
 	const auto ele = electrons->ptrAt(i);
@@ -436,6 +531,20 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
 
    //////////////////////////////////////Added by Harsh//////////////////////////////////////////////////////////////////////////////////
  //const reco::GenParticle* z_boson=nullptr;
+ /*{outFile<<"S no."<<"\t"<<"Entry"
+                <<"\t"<<"pdgId" 
+                <<"\t"<<"status"              
+                <<"\t"<<"pt"
+                <<"\t\t"<<"eta"
+                <<"\t\t"<<"phi"
+                <<"\t\t"<<"energy"
+                <<"\t\t"<<"Mother Id"
+                <<"\t\t"<<"Daughter Id"
+                <<endl;
+//            <<"  event  :    "<<iEvent.id().event()<<endl;
+                  }*/
+                 
+ 
 for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphandle->end(); ++part){
 		if(abs(part ->pdgId())==11 && part ->mother()->pdgId()==23){
 			Ele_Gen_Pt.push_back(part->pt());
@@ -452,33 +561,101 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
                    Z_Truth_e_Phi.push_back(part->mother()->phi());
                    Z_Truth_e_E.push_back(part->mother()->energy());
                 }
+////////////////////////////////////////////////////////////////// Testing Z that decay to e+e- ////////////////////////////////////////////////////////////////////////////////////
+                int nDZs = part->numberOfDaughters();
+                if(part->pdgId()==23 && nDZs==2 && ((part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)||(part->daughter(0)->pdgId()==-11 && part->daughter(1)->pdgId()==11))){ 
+                         
+        //        if((part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)||(part->daughter(0)->pdgId()==-11 && part->daughter(1)->pdgId()==11))
+                if(v==false && p<15)
+                {outFile<<"S no."<<"\t"<<"Entry"
+                       <<"\t"<<"pdgId" 
+                       <<"\t"<<"status"              
+                       <<"\t"<<"pt"
+                       <<"\t\t"<<"eta"
+                       <<"\t\t"<<"phi"
+                       <<"\t\t"<<"energy"
+                       <<"\t\t"<<"Mother Id"
+                       <<"\t\t"<<"Daughter Id"
+                       <<endl;
+//                     <<"  event  :    "<<iEvent.id().event()<<endl;
+                       v=true;
+                }}
+                 if(v==true){
+                        outFile<<number
+                        <<"\t"<<setprecision(2)<<p
+                        <<"\t"<<setprecision(2)<<part->pdgId()
+                        <<"\t"<<setprecision(2)<<part->status()
+                        <<"\t"<<setprecision(2)<<part->pt()
+                        <<"\t\t"<<setprecision(2)<<part->eta()
+                        <<"\t\t"<<setprecision(2)<<part->phi()
+                        <<"\t\t"<<setprecision(2)<<part->energy()<<"\t";
+  //                    <<"  event  :    "<<iEvent.id().event()<<endl;
+        
+                        int nMothers = part->numberOfMothers(); 
+                                for (int i = 0; i < nMothers; i++)
+                                              {
+                                                const auto* mother = part->mother(i);
+                                                if (mother != nullptr) {
+                                                outFile<<"\t"<<mother->pdgId();
+                                                                        }
+                                              }
+                        outFile<<"\t\t";
+        
+                        int nDaughters = part->numberOfDaughters(); 
+                                for (int i = 0; i < nDaughters; i++)
+                                             {
+                                              const auto* daughter = part->daughter(i); 
+                                              if (daughter != nullptr) {
+                                               outFile<<"\t"<<daughter->pdgId();
+                                                                       }
+                                              }
+                        outFile<<endl;
 
-
+                    number = number + 1;
+         //           p      = p+1;
+                    }
+                
+                
                 ///////////////////////////////////////////////////////////////Testing the Z boson that decay into e+ and e-////////////////////////////////////////////////////////
-        /*        if(part->pdgId()==23 && ((part->daughter(1)->pdgId()==11 && part->daughter(2)==-11)||(part->daughter(2)->pdgId()==11 && part->daughter(1)==-11)))
+   /*             if(part->pdgId()==23 && ((part->daughter(1)->pdgId()==11 && part->daughter(0)->pdgId()==-11)||(part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)))
                 { 
                 int nMothers = part->numberOfMothers(); 
                 for (int i = 0; i < nMothers; i++)
                               {
                                 const auto* mother = part->mother(i);
                                 if (mother != nullptr) {
-                                cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()<<"     pt  :    "<<mother->pt()<<"     eta  :    "<<mother->eta()<<"     Phi  :    "<<mother->phi()<<"     Energy  :    "<<mother->energy()<<"     Status  :    "<<mother->status() << endl;
+                                cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()
+                                     <<"     pt  :    "<<mother->pt() 
+                                     <<"     eta  :    "<<mother->eta()
+                                     <<"     Phi  :    "<<mother->phi()
+                                     <<"     Energy  :    "<<mother->energy()
+                                     <<"     Status  :    "<<mother->status() << endl;
                                                          }
                                }              
                     
-                cout<<"Z boson Particle Id :     "<<part->pdgId()<<"     pt  :    "<<part->pt()<<"     eta  :    "<<part->eta()<<"     Phi  :    "<<part->phi()<<"     Energy  :    "<<part->energy()<<"     Status  :    "<<part->status()<<endl;          
+                cout<<"Z boson Particle Id :     "<<part->pdgId()
+                    <<"     pt  :    "<<part->pt()
+                    <<"     eta  :    "<<part->eta()
+                    <<"     Phi  :    "<<part->phi()
+                    <<"     Energy  :    "<<part->energy()
+                    <<"     Status  :    "<<part->status()<<endl;          
                                            
                 int nDaughters = part->numberOfDaughters(); 
                 for (int i = 0; i < nDaughters; i++)
                              {
                               const auto* daughter = part->daughter(i); 
                               if (daughter != nullptr) {
-                              cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()<<"     pt  :    "<<daughter->pt()<<"     eta  :    "<<daughter->eta()<<"     Phi  :    "<<daughter->phi()<<"     Energy  :    "<<daughter->energy()<<"     Status  :    "<<daughter->status() << endl;
+                              cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()
+                                   <<"     pt  :    "<<daughter->pt()
+                                   <<"     eta  :    "<<daughter->eta()
+                                   <<"     Phi  :    "<<daughter->phi()
+                                   <<"     Energy  :    "<<daughter->energy()
+                                   <<"     Status  :    "<<daughter->status() << endl;
                                                          }
                              }
                 cout<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;      
                 }                  
-         */       
+   */           
                 ////////////////////////////////////////////////////////////////filling and testing of all the Z bosons///////////////////////////////////////////////////////////
                 if(part->pdgId()==23){
                         Z_Truth_all_Pt.push_back(part->pt());
@@ -486,69 +663,118 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
                         Z_Truth_all_Phi.push_back(part->phi());      
                         Z_Truth_all_E.push_back(part->energy());    
                         
-    /*                    if(part->pt()==0)
+         /*               if(part->pt()==0)
                         {int nMothers = part->numberOfMothers(); 
                         for (int i = 0; i < nMothers; i++)
                                       {
                                         const auto* mother = part->mother(i);
                                         if (mother != nullptr) {
-                                        cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()<<"     pt  :    "<<mother->pt()<<"     eta  :    "<<mother->eta()<<"     Phi  :    "<<mother->phi()<<"     Energy  :    "<<mother->energy()<<"     Status  :    "<<mother->status() << endl;
+                                        cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()
+                                             <<"     pt  :    "<<mother->pt()
+                                             <<"     eta  :    "<<mother->eta()
+                                             <<"     Phi  :    "<<mother->phi()
+                                             <<"     Energy  :    "<<mother->energy()
+                                             <<"     Status  :    "<<mother->status() << endl;
                                                                  }
                                        }              
 
-                        cout<<"Z boson Particle Id :     "<<part->pdgId()<<"     pt  :    "<<part->pt()<<"     eta  :    "<<part->eta()<<"     Phi  :    "<<part->phi()<<"     Energy  :    "<<part->energy()<<"     Status  :    "<<part->status()<<endl;          
+                        cout<<"Z boson Particle Id :     "<<part->pdgId()
+                            <<"     pt  :    "<<part->pt()
+                            <<"     eta  :    "<<part->eta()
+                            <<"     Phi  :    "<<part->phi()
+                            <<"     Energy  :    "<<part->energy()
+                            <<"     Status  :    "<<part->status()<<endl;          
                         
                         int nDaughters = part->numberOfDaughters(); 
                         for (int i = 0; i < nDaughters; i++)
                                      {
                                       const auto* daughter = part->daughter(i); 
                                       if (daughter != nullptr) {
-                                      cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()<<"     pt  :    "<<daughter->pt()<<"     eta  :    "<<daughter->eta()<<"     Phi  :    "<<daughter->phi()<<"     Energy  :    "<<daughter->energy()<<"     Status  :    "<<daughter->status() << endl;
+                                      cout << "daughter " << i + 1 << " Id       :     "<< daughter->pdgId()
+                                           <<"     pt  :    "<<daughter->pt()
+                                           <<"     eta  :    "<<daughter->eta()
+                                           <<"     Phi  :    "<<daughter->phi()
+                                           <<"     Energy  :    "<<daughter->energy()
+                                           <<"     Status  :    "<<daughter->status() << endl;
                                                                  }
                                      }
 
         
                         cout<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
-                 }
-    */            }
-     /*           if(part->pdgId()==23 && part->pt()!=0){
+                 }  */
+                }
+                if(part->pdgId()==23 && part->pt()!=0){
                        Z_Truth_no_pt_zero_Pt.push_back(part->pt()); 
                        Z_Truth_no_pt_zero_Eta.push_back(part->eta());
                        Z_Truth_no_pt_zero_Phi.push_back(part->phi());
                        Z_Truth_no_pt_zero_E.push_back(part->energy());  
-                        
-                        int nMothers = part->numberOfMothers(); 
+
+     /*                   int nMothers = part->numberOfMothers(); 
                         for (int i = 0; i < nMothers; i++)
                                       {
                                         const auto* mother = part->mother(i);
                                         if (mother != nullptr) {
-                                        cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()<<"     pt  :    "<<mother->pt()<<"     eta  :    "<<mother->eta()<<"     Phi  :    "<<mother->phi()<<"     Energy  :    "<<mother->energy()<<"     Status  :    "<<mother->status() << endl;
+                                        cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()
+                                             <<"     pt  :    "<<mother->pt()
+                                             <<"     eta  :    "<<mother->eta()
+                                             <<"     Phi  :    "<<mother->phi()
+                                             <<"     Energy  :    "<<mother->energy()
+                                             <<"     Status  :    "<<mother->status() << endl;
                                                                  }
                                        }              
 
-                        cout<<"Z boson Particle Id :     "<<part->pdgId()<<"     pt  :    "<<part->pt()<<"     eta  :    "<<part->eta()<<"     Phi  :    "<<part->phi()<<"     Energy  :    "<<part->energy()<<"     Status  :    "<<part->status()<<endl;          
+                        cout<<"Z boson Particle Id :     "<<part->pdgId()
+                            <<"     pt  :    "<<part->pt()
+                            <<"     eta  :    "<<part->eta()
+                            <<"     Phi  :    "<<part->phi()
+                            <<"     Energy  :    "<<part->energy()
+                            <<"     Status  :    "<<part->status()<<endl;          
                         
                         int nDaughters = part->numberOfDaughters(); 
                         for (int i = 0; i < nDaughters; i++)
                                      {
                                       const auto* daughter = part->daughter(i); 
                                       if (daughter != nullptr) {
-                                      cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()<<"     pt  :    "<<daughter->pt()<<"     eta  :    "<<daughter->eta()<<"     Phi  :    "<<daughter->phi()<<"     Energy  :    "<<daughter->energy()<<"     Status  :    "<<daughter->status() << endl;
+                                      cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()
+                                           <<"     pt  :    "<<daughter->pt()
+                                           <<"     eta  :    "<<daughter->eta()
+                                           <<"     Phi  :    "<<daughter->phi()
+                                           <<"     Energy  :    "<<daughter->energy()
+                                           <<"     Status  :    "<<daughter->status() << endl;
                                                                  }
                                      }
 
         
                         cout<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
-               }*/
-
-		if(part->pdgId()==1||part->pdgId()==2||part->pdgId()==3||part->pdgId()==4||part->pdgId()==5||part->pdgId()==6||part->pdgId()==7||part->pdgId()==8){
-		  int nDaughter=  part->numberOfDaughters()
-		     }
-                }
-		
-
-
-
+        */     }
+                
+                
+        /*        if(part->pdgId()==1||part->pdgId()==2||part->pdgId()==3||part->pdgId()==4||part->pdgId()==5||part->pdgId()==6||part->pdgId()==7||part->pdgId()==8)
+                { int i = 0;
+                  int nDaughters = part->numberOfDaughters();
+                  for (int i = 0; i < nDaughters; i++)
+                                     {
+                                      const auto* daughter = part->daughter(i); 
+                                      if (daughter != nullptr) {
+                                      cout <<" daughter " << i + 1 << " Id       :     " << daughter->pdgId()
+                                           <<"     pt  :    "<<daughter->pt()
+                                           <<"     eta  :    "<<daughter->eta()
+                                           <<"     Phi  :    "<<daughter->phi()
+                                           <<"     Energy  :    "<<daughter->energy()
+                                           <<"     Status  :    "<<daughter->status() << endl;
+                                                                 }
+                                     }
+                }        
+        */
+        
+        
+}
+if(v==true){
+        outFile<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
+        v=false;
+        p=p+1;
+}
+ 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -670,10 +896,10 @@ ZEE_RecHit_NTuplizer::beginJob()
                 T->Branch("Ele_Gen_Phi" , &Ele_Gen_Phi);
                 T->Branch("Ele_Gen_E" , &Ele_Gen_E);
 
-                T->Branch("ZTruth_e_Pt", &Z_Truth_e_Pt);
-                T->Branch("ZTruth_e_Eta", &Z_Truth_e_Eta);
-                T->Branch("ZTruth_e_Phi", &Z_Truth_e_Phi);
-                T->Branch("ZTruth_e_E", &Z_Truth_e_E);
+                T->Branch("Z_Truth_e_Pt", &Z_Truth_e_Pt);
+                T->Branch("Z_Truth_e_Eta", &Z_Truth_e_Eta);
+                T->Branch("Z_Truth_e_Phi", &Z_Truth_e_Phi);
+                T->Branch("Z_Truth_e_E", &Z_Truth_e_E);
 
                 T->Branch("Z_Truth_all_Pt", &Z_Truth_all_Pt); 
                 T->Branch("Z_Truth_all_Eta", &Z_Truth_all_Eta);
@@ -721,12 +947,12 @@ void ZEE_RecHit_NTuplizer::GetESPlaneRecHits(const reco::SuperCluster& sc, const
 //                                        std::cout << " ES energy = " << esItr->energy() << " pf energy = " << (*rh).second << std::endl;
                                         if((int) rhid.plane() == (int) planeIndex) {
 						std::shared_ptr<const CaloCellGeometry> geom = ecalESGeom->getGeometry(rhid);
-						Hit_ES_Eta[elenum].push_back( geom->etaPos() );
-                                                Hit_ES_Phi[elenum].push_back( geom->phiPos() );
-						Hit_ES_X[elenum].push_back( geom->getPosition().x() );
-						Hit_ES_Y[elenum].push_back( geom->getPosition().y() );
-						Hit_ES_Z[elenum].push_back( geom->getPosition().z() ) ;
-						ES_RecHitEn[elenum].push_back(esItr->energy());
+						Hit_ES_Eta[elenum].push_back( geom->etaPos() );               
+                                                Hit_ES_Phi[elenum].push_back( geom->phiPos() );              
+						Hit_ES_X[elenum].push_back(   geom->getPosition().x() );
+						Hit_ES_Y[elenum].push_back(   geom->getPosition().y() );
+						Hit_ES_Z[elenum].push_back(   geom->getPosition().z() ) ;
+						ES_RecHitEn[elenum].push_back(esItr->energy());              
 //						std::cout << "Preshower" <<std::setprecision(4) << " Eta = " <<geom->etaPos() << " : " <<" Phi = "<< geom->phiPos() << " 3D position" << geom->getPosition().z() << std::endl;
                                                 RawenergyPlane += esItr->energy();
                                                 pfRawenergyPlane += rh->second;
@@ -737,7 +963,6 @@ void ZEE_RecHit_NTuplizer::GetESPlaneRecHits(const reco::SuperCluster& sc, const
                         }
                 }
 
-//		std::cout<<std::endl<<" Number of ES hits in plane 1 = "<<NumHits<<std::endl;
         }
 
  //       return RawenergyPlane;

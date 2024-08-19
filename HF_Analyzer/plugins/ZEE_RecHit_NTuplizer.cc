@@ -320,25 +320,13 @@ ZEE_RecHit_NTuplizer::ZEE_RecHit_NTuplizer(const edm::ParameterSet& iConfig):
    electronsToken_ = mayConsume<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electrons"));
 //   genParticlesToken_ = mayConsume<edm::View<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticles"));
    usesResource("TFileService");
-
-    outFile.open("zee_sem_events.txt");
-    if (!outFile) {
-        std::cerr << "Error opening file output.txt for writing!" << std::endl;
-    }
-
  }
 
 
 ZEE_RecHit_NTuplizer::~ZEE_RecHit_NTuplizer()
 {
-    if (outFile.is_open()) {
-            outFile.close();}
-   
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
-
-
-
 
 }
 
@@ -385,9 +373,43 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
    ClearTreeVectors();
    run=0;  event=0;  lumi=0;
 
+
+ EBDetId *EBDID;
+for ( EcalRecHitCollection::const_iterator ecalItr= EBRechitsHandle->begin();  ecalItr != EBRechitsHandle->end();  ++ecalItr ) 
+        {   EBDID = new EBDetId((*ecalItr).id());
+    
+                // for(size_t k=0; k<EBRechitsHandle->size(); k++){
+                for(int k=0; k<2; k++){
+                 if(k==0){
+                  iEta[k].push_back(EBDID->ieta());      
+                  iPhi[k].push_back(EBDID->iphi());  
+        //          Hit_Eta[k].push_back(geom->etaPos() );        
+        //          Hit_Phi[k].push_back(geom->phiPos() );        
+        //          Hit_X[k].push_back(geom->getPosition().x());     
+        //          Hit_Y[k].push_back(geom->getPosition().y());     
+        //          Hit_Z[k].push_back(geom->getPosition().z());                  
+                 // RecHitFrac[k].push_back     (EBDID->);
+                  RecHitEn[k].push_back(ecalItr->energy());  
+            //      cout<<ecalItr->energy()<<endl;
+                  }
+
+               if(k==1){
+                  iEta[k].push_back(EBDID->ieta());      
+                  iPhi[k].push_back(EBDID->iphi());  
+        //          Hit_Eta[k].push_back(geom->etaPos() );        
+        //          Hit_Phi[k].push_back(geom->phiPos() );        
+        //          Hit_X[k].push_back(geom->getPosition().x());     
+        //          Hit_Y[k].push_back(geom->getPosition().y());     
+        //          Hit_Z[k].push_back(geom->getPosition().z());                  
+                 // RecHitFrac[k].push_back     (EBDID->);
+                  RecHitEn[k].push_back(ecalItr->energy());  
+            //      cout<<ecalItr->energy()<<endl;
+                  }
+ 
+                }
+        }
 ///////////////////////////Fill Electron/Photon related stuff/////////////////////////////////////////////////////
    nElectrons_ = 0;
-
    for (size_t i = 0; i < electrons->size(); ++i){
 	if(electrons->size() > 2) break;
 	const auto ele = electrons->ptrAt(i);
@@ -444,23 +466,6 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
         HFEMClust_eCore_.push_back(clusShape.eCore());
 
    }
-
-
-   //////////////////////////////////////Added by Harsh//////////////////////////////////////////////////////////////////////////////////
- //const reco::GenParticle* z_boson=nullptr;
- /*{outFile<<"S no."<<"\t"<<"Entry"
-                <<"\t"<<"pdgId" 
-                <<"\t"<<"status"              
-                <<"\t"<<"pt"
-                <<"\t\t"<<"eta"
-                <<"\t\t"<<"phi"
-                <<"\t\t"<<"energy"
-                <<"\t\t"<<"Mother Id"
-                <<"\t\t"<<"Daughter Id"
-                <<endl;
-//            <<"  event  :    "<<iEvent.id().event()<<endl;
-                  }*/
-                 
  
 for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphandle->end(); ++part){
 		if(abs(part ->pdgId())==11 && part ->mother()->pdgId()==23){
@@ -468,7 +473,7 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
 			Ele_Gen_Eta.push_back(part->eta());
 			Ele_Gen_Phi.push_back(part->phi());
 			Ele_Gen_E.push_back(part->energy());
-                 //       cout<<"Electron "<<"Pt: "<<part->pt()<<"    MotherID: "<<part->mother()->pdgId()<<"    Status:"<< part-> status()<<endl;
+                
 			}
 
                //////////////////////////////////////////////////////////////// filling of Z bosons that decay into e- and e+  /////////////////////////////////////////////////////
@@ -477,224 +482,22 @@ for(edm::View<GenParticle>::const_iterator part = gphandle->begin(); part!=gphan
                    Z_Truth_e_Eta.push_back(part->mother()->eta());
                    Z_Truth_e_Phi.push_back(part->mother()->phi());
                    Z_Truth_e_E.push_back(part->mother()->energy());
-                }
-////////////////////////////////////////////////////////////////// Testing Z that decay to e+e- ////////////////////////////////////////////////////////////////////////////////////
-                int nDZs = part->numberOfDaughters();
-                if(part->pdgId()==23 && nDZs==2 && ((part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)||(part->daughter(0)->pdgId()==-11 && part->daughter(1)->pdgId()==11))){ 
-                         
-        //        if((part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)||(part->daughter(0)->pdgId()==-11 && part->daughter(1)->pdgId()==11))
-                if(v==false && p<15)
-                {outFile<<"S no."<<"\t"<<"Entry"
-                       <<"\t"<<"pdgId" 
-                       <<"\t"<<"status"              
-                       <<"\t"<<"pt"
-                       <<"\t\t"<<"eta"
-                       <<"\t\t"<<"phi"
-                       <<"\t\t"<<"energy"
-                       <<"\t\t"<<"Mother Id"
-                       <<"\t\t"<<"Daughter Id"
-                       <<endl;
-//                     <<"  event  :    "<<iEvent.id().event()<<endl;
-                       v=true;
-                }}
-                 if(v==true){
-                        outFile<<number
-                        <<"\t"<<setprecision(2)<<p
-                        <<"\t"<<setprecision(2)<<part->pdgId()
-                        <<"\t"<<setprecision(2)<<part->status()
-                        <<"\t"<<setprecision(2)<<part->pt()
-                        <<"\t\t"<<setprecision(2)<<part->eta()
-                        <<"\t\t"<<setprecision(2)<<part->phi()
-                        <<"\t\t"<<setprecision(2)<<part->energy()<<"\t";
-  //                    <<"  event  :    "<<iEvent.id().event()<<endl;
-        
-                        int nMothers = part->numberOfMothers(); 
-                                for (int i = 0; i < nMothers; i++)
-                                              {
-                                                const auto* mother = part->mother(i);
-                                                if (mother != nullptr) {
-                                                outFile<<"\t"<<mother->pdgId();
-                                                                        }
-                                              }
-                        outFile<<"\t\t";
-        
-                        int nDaughters = part->numberOfDaughters(); 
-                                for (int i = 0; i < nDaughters; i++)
-                                             {
-                                              const auto* daughter = part->daughter(i); 
-                                              if (daughter != nullptr) {
-                                               outFile<<"\t"<<daughter->pdgId();
-                                                                       }
-                                              }
-                        outFile<<endl;
-
-                    number = number + 1;
-         //           p      = p+1;
-                    }
-                
-                
-                ///////////////////////////////////////////////////////////////Testing the Z boson that decay into e+ and e-////////////////////////////////////////////////////////
-   /*             if(part->pdgId()==23 && ((part->daughter(1)->pdgId()==11 && part->daughter(0)->pdgId()==-11)||(part->daughter(0)->pdgId()==11 && part->daughter(1)->pdgId()==-11)))
-                { 
-                int nMothers = part->numberOfMothers(); 
-                for (int i = 0; i < nMothers; i++)
-                              {
-                                const auto* mother = part->mother(i);
-                                if (mother != nullptr) {
-                                cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()
-                                     <<"     pt  :    "<<mother->pt() 
-                                     <<"     eta  :    "<<mother->eta()
-                                     <<"     Phi  :    "<<mother->phi()
-                                     <<"     Energy  :    "<<mother->energy()
-                                     <<"     Status  :    "<<mother->status() << endl;
-                                                         }
-                               }              
-                    
-                cout<<"Z boson Particle Id :     "<<part->pdgId()
-                    <<"     pt  :    "<<part->pt()
-                    <<"     eta  :    "<<part->eta()
-                    <<"     Phi  :    "<<part->phi()
-                    <<"     Energy  :    "<<part->energy()
-                    <<"     Status  :    "<<part->status()<<endl;          
-                                           
-                int nDaughters = part->numberOfDaughters(); 
-                for (int i = 0; i < nDaughters; i++)
-                             {
-                              const auto* daughter = part->daughter(i); 
-                              if (daughter != nullptr) {
-                              cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()
-                                   <<"     pt  :    "<<daughter->pt()
-                                   <<"     eta  :    "<<daughter->eta()
-                                   <<"     Phi  :    "<<daughter->phi()
-                                   <<"     Energy  :    "<<daughter->energy()
-                                   <<"     Status  :    "<<daughter->status() << endl;
-                                                         }
-                             }
-                cout<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;      
-                }                  
-   */           
+                } 
                 ////////////////////////////////////////////////////////////////filling and testing of all the Z bosons///////////////////////////////////////////////////////////
                 if(part->pdgId()==23){
                         Z_Truth_all_Pt.push_back(part->pt());
                         Z_Truth_all_Eta.push_back(part->eta());   
                         Z_Truth_all_Phi.push_back(part->phi());      
                         Z_Truth_all_E.push_back(part->energy());    
-                        
-         /*               if(part->pt()==0)
-                        {int nMothers = part->numberOfMothers(); 
-                        for (int i = 0; i < nMothers; i++)
-                                      {
-                                        const auto* mother = part->mother(i);
-                                        if (mother != nullptr) {
-                                        cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()
-                                             <<"     pt  :    "<<mother->pt()
-                                             <<"     eta  :    "<<mother->eta()
-                                             <<"     Phi  :    "<<mother->phi()
-                                             <<"     Energy  :    "<<mother->energy()
-                                             <<"     Status  :    "<<mother->status() << endl;
-                                                                 }
-                                       }              
+                        }
 
-                        cout<<"Z boson Particle Id :     "<<part->pdgId()
-                            <<"     pt  :    "<<part->pt()
-                            <<"     eta  :    "<<part->eta()
-                            <<"     Phi  :    "<<part->phi()
-                            <<"     Energy  :    "<<part->energy()
-                            <<"     Status  :    "<<part->status()<<endl;          
-                        
-                        int nDaughters = part->numberOfDaughters(); 
-                        for (int i = 0; i < nDaughters; i++)
-                                     {
-                                      const auto* daughter = part->daughter(i); 
-                                      if (daughter != nullptr) {
-                                      cout << "daughter " << i + 1 << " Id       :     "<< daughter->pdgId()
-                                           <<"     pt  :    "<<daughter->pt()
-                                           <<"     eta  :    "<<daughter->eta()
-                                           <<"     Phi  :    "<<daughter->phi()
-                                           <<"     Energy  :    "<<daughter->energy()
-                                           <<"     Status  :    "<<daughter->status() << endl;
-                                                                 }
-                                     }
-
-        
-                        cout<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
-                 }  */
-                }
                 if(part->pdgId()==23 && part->pt()!=0){
                        Z_Truth_no_pt_zero_Pt.push_back(part->pt()); 
                        Z_Truth_no_pt_zero_Eta.push_back(part->eta());
                        Z_Truth_no_pt_zero_Phi.push_back(part->phi());
                        Z_Truth_no_pt_zero_E.push_back(part->energy());  
-
-     /*                   int nMothers = part->numberOfMothers(); 
-                        for (int i = 0; i < nMothers; i++)
-                                      {
-                                        const auto* mother = part->mother(i);
-                                        if (mother != nullptr) {
-                                        cout << "mother " << i + 1 << " Id         :     "<<mother->pdgId()
-                                             <<"     pt  :    "<<mother->pt()
-                                             <<"     eta  :    "<<mother->eta()
-                                             <<"     Phi  :    "<<mother->phi()
-                                             <<"     Energy  :    "<<mother->energy()
-                                             <<"     Status  :    "<<mother->status() << endl;
-                                                                 }
-                                       }              
-
-                        cout<<"Z boson Particle Id :     "<<part->pdgId()
-                            <<"     pt  :    "<<part->pt()
-                            <<"     eta  :    "<<part->eta()
-                            <<"     Phi  :    "<<part->phi()
-                            <<"     Energy  :    "<<part->energy()
-                            <<"     Status  :    "<<part->status()<<endl;          
-                        
-                        int nDaughters = part->numberOfDaughters(); 
-                        for (int i = 0; i < nDaughters; i++)
-                                     {
-                                      const auto* daughter = part->daughter(i); 
-                                      if (daughter != nullptr) {
-                                      cout << "daughter " << i + 1 << " Id       :     " << daughter->pdgId()
-                                           <<"     pt  :    "<<daughter->pt()
-                                           <<"     eta  :    "<<daughter->eta()
-                                           <<"     Phi  :    "<<daughter->phi()
-                                           <<"     Energy  :    "<<daughter->energy()
-                                           <<"     Status  :    "<<daughter->status() << endl;
-                                                                 }
-                                     }
-
-        
-                        cout<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
-        */     }
-                
-                
-        /*        if(part->pdgId()==1||part->pdgId()==2||part->pdgId()==3||part->pdgId()==4||part->pdgId()==5||part->pdgId()==6||part->pdgId()==7||part->pdgId()==8)
-                { int i = 0;
-                  int nDaughters = part->numberOfDaughters();
-                  for (int i = 0; i < nDaughters; i++)
-                                     {
-                                      const auto* daughter = part->daughter(i); 
-                                      if (daughter != nullptr) {
-                                      cout <<" daughter " << i + 1 << " Id       :     " << daughter->pdgId()
-                                           <<"     pt  :    "<<daughter->pt()
-                                           <<"     eta  :    "<<daughter->eta()
-                                           <<"     Phi  :    "<<daughter->phi()
-                                           <<"     Energy  :    "<<daughter->energy()
-                                           <<"     Status  :    "<<daughter->status() << endl;
-                                                                 }
-                                     }
-                }        
-        */
-        
-        
+                        }        
 }
-if(v==true){
-        outFile<<":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<endl;
-        v=false;
-        p=p+1;
-}
- 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////Run, event, lumi//////////////////////////////////
    run=iEvent.id().run();
@@ -808,25 +611,25 @@ ZEE_RecHit_NTuplizer::beginJob()
         T->Branch("lumi",&lumi,"lumi/I");
 
         ////////////added by Harsh////////////
-                T->Branch("Ele_Gen_Pt" , &Ele_Gen_Pt);
-                T->Branch("Ele_Gen_Eta" , &Ele_Gen_Eta);
-                T->Branch("Ele_Gen_Phi" , &Ele_Gen_Phi);
-                T->Branch("Ele_Gen_E" , &Ele_Gen_E);
+        T->Branch("Ele_Gen_Pt" , &Ele_Gen_Pt);
+        T->Branch("Ele_Gen_Eta" , &Ele_Gen_Eta);
+        T->Branch("Ele_Gen_Phi" , &Ele_Gen_Phi);
+        T->Branch("Ele_Gen_E" , &Ele_Gen_E);
 
-                T->Branch("Z_Truth_e_Pt", &Z_Truth_e_Pt);
-                T->Branch("Z_Truth_e_Eta", &Z_Truth_e_Eta);
-                T->Branch("Z_Truth_e_Phi", &Z_Truth_e_Phi);
-                T->Branch("Z_Truth_e_E", &Z_Truth_e_E);
+        T->Branch("Z_Truth_e_Pt", &Z_Truth_e_Pt);
+        T->Branch("Z_Truth_e_Eta", &Z_Truth_e_Eta);
+        T->Branch("Z_Truth_e_Phi", &Z_Truth_e_Phi);
+        T->Branch("Z_Truth_e_E", &Z_Truth_e_E);
 
-                T->Branch("Z_Truth_all_Pt", &Z_Truth_all_Pt); 
-                T->Branch("Z_Truth_all_Eta", &Z_Truth_all_Eta);
-                T->Branch("Z_Truth_all_Phi", &Z_Truth_all_Phi);
-                T->Branch("Z_Truth_all_E", &Z_Truth_all_E);
+        T->Branch("Z_Truth_all_Pt", &Z_Truth_all_Pt); 
+        T->Branch("Z_Truth_all_Eta", &Z_Truth_all_Eta);
+        T->Branch("Z_Truth_all_Phi", &Z_Truth_all_Phi);
+        T->Branch("Z_Truth_all_E", &Z_Truth_all_E);
 
-                T->Branch("Z_Truth_no_pt_zero_Pt",&Z_Truth_no_pt_zero_Pt);
-                T->Branch("Z_Truth_no_pt_zero_Eta",&Z_Truth_no_pt_zero_Eta);
-                T->Branch("Z_Truth_no_pt_zero_Phi",&Z_Truth_no_pt_zero_Phi);
-                T->Branch("Z_Truth_no_pt_zero_E",&Z_Truth_no_pt_zero_E);
+        T->Branch("Z_Truth_no_pt_zero_Pt",&Z_Truth_no_pt_zero_Pt);
+        T->Branch("Z_Truth_no_pt_zero_Eta",&Z_Truth_no_pt_zero_Eta);
+        T->Branch("Z_Truth_no_pt_zero_Phi",&Z_Truth_no_pt_zero_Phi);
+        T->Branch("Z_Truth_no_pt_zero_E",&Z_Truth_no_pt_zero_E);
 
 
 }
@@ -973,7 +776,7 @@ void ZEE_RecHit_NTuplizer::ClearTreeVectors()
 	Ele_Gen_E.clear();
 */
 
-/////////////////////added by Harsh////////////////////
+//////////////////////////////////////////////////////////
 	Ele_Gen_Pt.clear();
 	Ele_Gen_Eta.clear();
 	Ele_Gen_Phi.clear();

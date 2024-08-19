@@ -89,8 +89,9 @@ process.nTuplelize = cms.EDAnalyzer('ZEE_RecHit_NTuplizer',
 
 
 process.TFileService = cms.Service("TFileService",
-     fileName = cms.string("nTuple_MC.root"),
+#     fileName = cms.string("nTuple_MC.root"),
 #     fileName = cms.string("Tree_Gamma_ABCD.root"),
+      fileName = cms.string("test_rechit.root"),
       closeFileFast = cms.untracked.bool(True)
   )
 
