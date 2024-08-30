@@ -124,6 +124,7 @@ class ZEE_RecHit_NTuplizer : public edm::one::EDAnalyzer<edm::one::SharedResourc
 //   cluster tools
       EcalClusterLazyTools *clustertools;
       noZS::EcalClusterLazyTools *clustertools_NoZS;
+//     clustertools_NoZS = new noZS::EcalClusterLazyTools(iEvent, iSetup, recHitCollectionEBToken_, recHitCollectionEEToken_);
 
 //   Identify if the SC lies in EB OR EE based on its seed
      bool isEB = 0;
@@ -365,6 +366,14 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
  
    	iEvent.getByToken(xtoken_, xhandle);
    	iEvent.getByToken(gptoken_, gphandle);
+
+        edm::ESHandle<CaloGeometry> pG;
+        iSetup.get<CaloGeometryRecord>().get(pG);
+        iSetup.get<EcalPedestalsRcd>().get(_ped);
+        const CaloGeometry *geo = pG.product();
+        const CaloSubdetectorGeometry ecalEBGeom = static_cast<const CaloSubdetectorGeometry >(geo->getSubdetectorGeometry(DetId::Ecal, EcalBarrel));
+        const CaloSubdetectorGeometry *ecalEEGeom = static_cast<const CaloSubdetectorGeometry *>(geo->getSubdetectorGeometry(DetId::Ecal, EcalEndcap));
+
    ////////////////////////////
 
 
@@ -375,39 +384,6 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
 
 
  EBDetId *EBDID;
-for ( EcalRecHitCollection::const_iterator ecalItr= EBRechitsHandle->begin();  ecalItr != EBRechitsHandle->end();  ++ecalItr ) 
-        {   EBDID = new EBDetId((*ecalItr).id());
-    
-                // for(size_t k=0; k<EBRechitsHandle->size(); k++){
-                for(int k=0; k<2; k++){
-                 if(k==0){
-                  iEta[k].push_back(EBDID->ieta());      
-                  iPhi[k].push_back(EBDID->iphi());  
-        //          Hit_Eta[k].push_back(geom->etaPos() );        
-        //          Hit_Phi[k].push_back(geom->phiPos() );        
-        //          Hit_X[k].push_back(geom->getPosition().x());     
-        //          Hit_Y[k].push_back(geom->getPosition().y());     
-        //          Hit_Z[k].push_back(geom->getPosition().z());                  
-                 // RecHitFrac[k].push_back     (EBDID->);
-                  RecHitEn[k].push_back(ecalItr->energy());  
-            //      cout<<ecalItr->energy()<<endl;
-                  }
-
-               if(k==1){
-                  iEta[k].push_back(EBDID->ieta());      
-                  iPhi[k].push_back(EBDID->iphi());  
-        //          Hit_Eta[k].push_back(geom->etaPos() );        
-        //          Hit_Phi[k].push_back(geom->phiPos() );        
-        //          Hit_X[k].push_back(geom->getPosition().x());     
-        //          Hit_Y[k].push_back(geom->getPosition().y());     
-        //          Hit_Z[k].push_back(geom->getPosition().z());                  
-                 // RecHitFrac[k].push_back     (EBDID->);
-                  RecHitEn[k].push_back(ecalItr->energy());  
-            //      cout<<ecalItr->energy()<<endl;
-                  }
- 
-                }
-        }
 ///////////////////////////Fill Electron/Photon related stuff/////////////////////////////////////////////////////
    nElectrons_ = 0;
    for (size_t i = 0; i < electrons->size(); ++i){
@@ -416,6 +392,24 @@ for ( EcalRecHitCollection::const_iterator ecalItr= EBRechitsHandle->begin();  e
         if( ele->pt() < 1. ) continue;
 	if(!(ele->ecalDrivenSeed())) continue;
 	if(ele->parentSuperCluster().isNull()) continue;
+
+
+        for ( EcalRecHitCollection::const_iterator ecalItr= EBRechitsHandle->begin();  ecalItr != EBRechitsHandle->end();  ++ecalItr ) 
+        {   EBDID = new EBDetId((*ecalItr).id());
+            
+           shared_ptr<const CaloCellGeometry> geom =ecalEBGeom->getGeometry(ecalItr.first.rawId());
+                // for(size_t k=0; k<EBRechitsHandle->size(); k++){
+                  iEta[nElectrons_].push_back(EBDID->ieta());      
+                  iPhi[nElectrons_].push_back(EBDID->iphi());  
+                  Hit_Eta[nElectrons_].push_back(geom->etaPos());        
+                  Hit_Phi[nElectrons_].push_back(geom->phiPos());        
+                  Hit_X[nElectrons_].push_back(geom->getPosition().x());     
+                  Hit_Y[nElectrons_].push_back(geom->getPosition().y());     
+                  Hit_Z[nElectrons_].push_back(geom->getPosition().z());                  
+                 // RecHitFrac[nElectrons_].push_back     (EBDID->);
+                  RecHitEn[nElectrons_].push_back(ecalItr->energy());  
+            //      cout<<ecalItr->energy()<<endl;
+        }
 
         nElectrons_++;
         Ele_pt_.push_back( ele->pt() );
