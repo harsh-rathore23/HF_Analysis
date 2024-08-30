@@ -367,12 +367,12 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
    	iEvent.getByToken(xtoken_, xhandle);
    	iEvent.getByToken(gptoken_, gphandle);
 
-        edm::ESHandle<CaloGeometry> pG;
-        iSetup.get<CaloGeometryRecord>().get(pG);
-        iSetup.get<EcalPedestalsRcd>().get(_ped);
-        const CaloGeometry *geo = pG.product();
-        const CaloSubdetectorGeometry ecalEBGeom = static_cast<const CaloSubdetectorGeometry >(geo->getSubdetectorGeometry(DetId::Ecal, EcalBarrel));
-        const CaloSubdetectorGeometry *ecalEEGeom = static_cast<const CaloSubdetectorGeometry *>(geo->getSubdetectorGeometry(DetId::Ecal, EcalEndcap));
+       // edm::ESHandle<CaloGeometry> pG;
+       // iSetup.get<CaloGeometryRecord>().get(pG);
+       // iSetup.get<EcalPedestalsRcd>().get(_ped);
+       // const CaloGeometry *geo = pG.product();
+       // const CaloSubdetectorGeometry ecalEBGeom = static_cast<const CaloSubdetectorGeometry >(geo->getSubdetectorGeometry(DetId::Ecal, EcalBarrel));
+       // const CaloSubdetectorGeometry *ecalEEGeom = static_cast<const CaloSubdetectorGeometry *>(geo->getSubdetectorGeometry(DetId::Ecal, EcalEndcap));
 
    ////////////////////////////
 
@@ -397,15 +397,15 @@ void ZEE_RecHit_NTuplizer::analyze(const edm::Event& iEvent, const edm::EventSet
         for ( EcalRecHitCollection::const_iterator ecalItr= EBRechitsHandle->begin();  ecalItr != EBRechitsHandle->end();  ++ecalItr ) 
         {   EBDID = new EBDetId((*ecalItr).id());
             
-           shared_ptr<const CaloCellGeometry> geom =ecalEBGeom->getGeometry(ecalItr.first.rawId());
+           //shared_ptr<const CaloCellGeometry> geom =ecalEBGeom->getGeometry(ecalItr.first.rawId());
                 // for(size_t k=0; k<EBRechitsHandle->size(); k++){
                   iEta[nElectrons_].push_back(EBDID->ieta());      
                   iPhi[nElectrons_].push_back(EBDID->iphi());  
-                  Hit_Eta[nElectrons_].push_back(geom->etaPos());        
-                  Hit_Phi[nElectrons_].push_back(geom->phiPos());        
-                  Hit_X[nElectrons_].push_back(geom->getPosition().x());     
-                  Hit_Y[nElectrons_].push_back(geom->getPosition().y());     
-                  Hit_Z[nElectrons_].push_back(geom->getPosition().z());                  
+                 // Hit_Eta[nElectrons_].push_back(geom->etaPos());        
+                 // Hit_Phi[nElectrons_].push_back(geom->phiPos());        
+                 // Hit_X[nElectrons_].push_back(geom->getPosition().x());     
+                 // Hit_Y[nElectrons_].push_back(geom->getPosition().y());     
+                 // Hit_Z[nElectrons_].push_back(geom->getPosition().z());                  
                  // RecHitFrac[nElectrons_].push_back     (EBDID->);
                   RecHitEn[nElectrons_].push_back(ecalItr->energy());  
             //      cout<<ecalItr->energy()<<endl;
