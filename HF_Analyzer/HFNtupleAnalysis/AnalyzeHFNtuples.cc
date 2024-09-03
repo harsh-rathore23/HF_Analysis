@@ -174,5 +174,19 @@ void AnalyzeHFNtuples::EventLoop(const char *data) {
                 h_Z_Truth_no_pt_zero_Phi -> Fill(Z_Truth_no_pt_zero_Phi->at(i));
                 h_Z_Truth_no_pt_zero_E   -> Fill(Z_Truth_no_pt_zero_E->at(i));
           }
+      
+         for(int i=0 ; i<iEtaEle1->size();i++)
+         {
+          h_iEta_ele1    ->Fill(iEtaEle1->at(i)); 
+          h_iPhi_ele1    ->Fill(iPhiEle1->at(i)); 
+          h_Energy_ele1  ->Fill(RecHitEnEle1->at(i));
+         }
+
+         for(int i=0 ; i<iEtaEle2->size();i++)
+         {
+          h_iEta_ele2    ->Fill(iEtaEle2->at(i)); 
+          h_iPhi_ele2    ->Fill(iPhiEle2->at(i)); 
+          h_Energy_ele2  ->Fill(RecHitEnEle2->at(i)); 
+         }
     }
 }

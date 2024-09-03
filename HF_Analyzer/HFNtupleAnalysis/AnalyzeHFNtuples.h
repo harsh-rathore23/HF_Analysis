@@ -76,7 +76,14 @@ class AnalyzeHFNtuples : public NtupleVariables{
   TH1F *h_pt_e2;
   TH2F *pt1_vs_pt2;
   TH2F *eta1_vs_eta2;
-};
+
+  TH1F *h_iEta_ele1;    
+  TH1F *h_iEta_ele2;    
+  TH1F *h_iPhi_ele1;    
+  TH1F *h_iPhi_ele2;          
+  TH1F *h_Energy_ele1;      
+  TH1F *h_Energy_ele2;        
+};      
 #endif
 
 #ifdef AnalyzeHFNtuples_cxx
@@ -135,6 +142,13 @@ void AnalyzeHFNtuples::BookHistogram(const char *outFileName) {
   h_pt_e2                  = new TH1F("pt_e2"                   ,     "pt distribution of low pt e gen level",                    300 ,    0    ,  350   );
   pt1_vs_pt2               = new TH2F("pt1_vs_pt2"              ,     "pt1 vs pt2 of gen level e-s",                              125 ,    0    ,  150   , 125 ,    0    , 150);
   eta1_vs_eta2             = new TH2F("eta1_vs_eta2"            ,     "eta1 vs eta2 of gen level e-s",                            21 ,    -10  ,  10    , 21,  -10    , 10 );
+
+  h_iEta_ele1             = new TH1F("ieta_ele1"                ,     "i#eta distribution of rechit of electron 1",               200 ,    +100 ,  0 );
+  h_iEta_ele2             = new TH1F("ieta_ele2"                ,     "i#eta distribution of rechit of electron 2",               200 ,    +100 ,  0 );
+  h_iPhi_ele1             = new TH1F("iphi_ele1"                ,     "i#phi distribution of rechit of electron 1",               200 ,    +100 ,  0 );
+  h_iPhi_ele2             = new TH1F("iphi_ele2"                ,     "i#phi distribution of rechit of electron 2",               200 ,    +100 ,  0 );
+  h_Energy_ele1           = new TH1F("energy_ele1"              ,     "energy distribution of rechit of electron 1",              200 ,     0 ,  220 );
+  h_Energy_ele2           = new TH1F("energy_ele2"              ,     "energy distribution of rechit of electron 2",              200 ,     0 ,  220 );  
 }
 
 
@@ -232,6 +246,13 @@ AnalyzeHFNtuples::~AnalyzeHFNtuples() {
   h_pt_e1                  -> Write();
   h_pt_e2                  -> Write();
   pt1_vs_pt2               -> Write();
+  
+  h_iEta_ele1              -> Write();  
+  h_iEta_ele2              -> Write();  
+  h_iPhi_ele1              -> Write();  
+  h_iPhi_ele2              -> Write();  
+  h_Energy_ele1            -> Write();  
+  h_Energy_ele2            -> Write();    
 
 
   h_Z_mass                  -> GetXaxis()->SetTitle("mass of Z boson");
@@ -272,6 +293,14 @@ AnalyzeHFNtuples::~AnalyzeHFNtuples() {
   eta1_vs_eta2              -> GetXaxis()->SetTitle("eta2");
   eta1_vs_eta2              -> GetYaxis()->SetTitle("eta1");
 
+  h_iEta_ele1               -> GetXaxis()->SetTitle("i#eta");
+  h_iEta_ele2               -> GetXaxis()->SetTitle("i#eta");
+  h_iPhi_ele1               -> GetXaxis()->SetTitle("i#phi");
+  h_iPhi_ele2               -> GetXaxis()->SetTitle("i#phi");
+  h_Energy_ele1             -> GetXaxis()->SetTitle("energy");
+  h_Energy_ele2             -> GetXaxis()->SetTitle("energy");
+
+
 
   TCanvas *c1 = new TCanvas("c1 "  ,   "distribution of mass of Z for n=2 e",                        3600,4200);
   TCanvas *c2 = new TCanvas("c2 "  ,   "distribution of pt of Z",                                    3600,4200);
@@ -310,6 +339,14 @@ AnalyzeHFNtuples::~AnalyzeHFNtuples() {
   TCanvas *c35= new TCanvas("c35"  ,   "distribution of pt of gen level e2",                         3600,4200);
   TCanvas *c36= new TCanvas("c36"  ,   "distribution of pt1 vs pt2 of gen level e",                  3600,4200);
   TCanvas *c37= new TCanvas("c37"  ,   "distribution of eta1 vs eta2 of gen level e",                3600,4200);
+
+  TCanvas *c38= new TCanvas("c38"  ,   "distribution of ieta of electron1 rechit",                  3600,4200);
+  TCanvas *c39= new TCanvas("c39"  ,   "distribution of ieta of electron2 rechit",                  3600,4200);
+  TCanvas *c40= new TCanvas("c40"  ,   "distribution of iphi of electron1 rechit",                  3600,4200);
+  TCanvas *c41= new TCanvas("c41"  ,   "distribution of iphi of electron2 rechit",                  3600,4200);
+  TCanvas *c42= new TCanvas("c42"  ,   "distribution of energy of electron1 rechit",                3600,4200);
+  TCanvas *c43= new TCanvas("c43"  ,   "distribution of energy of electron2 rechit",                3600,4200);
+
 
 c12->SetLeftMargin(.15);
 c12->SetRightMargin(0.15);
@@ -524,7 +561,23 @@ TF1 *funct2 = new TF1("mybw2","[0] / (TMath::Pi() * 2) * [2] / ((x - [1])*(x - [
   stats37->SetY2NDC(0.9);     // Set Y2 position (top edge)
   c37->Modified();
 
-
+   c38->cd(); 
+   h_iEta_ele1    ->Draw();
+   c39->cd();     
+   h_iEta_ele2    ->Draw();
+   c40->cd();     
+   h_iPhi_ele1    ->Draw();
+   c41->cd();     
+   h_iPhi_ele2    ->Draw();
+   c42->cd(); 
+   h_Energy_ele1->GetYaxis()->SetTitle("log(Y)");    
+   h_Energy_ele1  ->Draw();
+   c42->SetLogy();
+   c43->cd(); 
+   h_Energy_ele2->GetYaxis()->SetTitle("log(Y)");    
+   h_Energy_ele2  ->Draw();
+   c43->SetLogy();
+  
 
 //c1 -> SaveAs("Zmass.pdf");
 //c2 -> SaveAs("Zpt.pdf");
@@ -532,10 +585,10 @@ TF1 *funct2 = new TF1("mybw2","[0] / (TMath::Pi() * 2) * [2] / ((x - [1])*(x - [
 //c4 -> SaveAs("Zphi.pdf");
 //c5 -> SaveAs("Zenergy.pdf");
 //c6 -> SaveAs("ZmassHFEMclust.pdf");
-c7 -> SaveAs("Ele_Gen_Pt.pdf");                     
-c8 -> SaveAs("Ele_Gen_Phi.pdf");                     
-c9 -> SaveAs("Ele_Gen_E.pdf");                     
-c10-> SaveAs("Ele_Gen_Eta.pdf");    
+//c7 -> SaveAs("Ele_Gen_Pt.pdf");                     
+//c8 -> SaveAs("Ele_Gen_Phi.pdf");                     
+//c9 -> SaveAs("Ele_Gen_E.pdf");                     
+//c10-> SaveAs("Ele_Gen_Eta.pdf");    
 //c11-> SaveAs("Z_Rapidity.pdf");     
 //c12-> SaveAs("Rapi_vs_eta.pdf");  
 //c13-> SaveAs("test.pdf");   
@@ -547,23 +600,29 @@ c10-> SaveAs("Ele_Gen_Eta.pdf");
 //c19-> SaveAs("Test_Short.pdf"); 
 //c20-> SaveAs("R.pdf");
 //c21-> SaveAs("angle_e_Zframe.pdf");
-c22-> SaveAs("GenZ_pt.pdf");
-c23-> SaveAs("GenZ_eta.pdf");
-c24-> SaveAs("GenZ_phi.pdf");
-c25-> SaveAs("GenZ_energy.pdf");
-c26-> SaveAs("GenZ_all_pt.pdf");
+//c22-> SaveAs("GenZ_pt.pdf");
+//c23-> SaveAs("GenZ_eta.pdf");
+//c24-> SaveAs("GenZ_phi.pdf");
+//c25-> SaveAs("GenZ_energy.pdf");
+//c26-> SaveAs("GenZ_all_pt.pdf");
 //c27-> SaveAs("GenZ_all_eta.pdf");
 //c28-> SaveAs("GenZ_all_phi.pdf");
-c29-> SaveAs("GenZ_all_energy.pdf");
+//c29-> SaveAs("GenZ_all_energy.pdf");
 //c31-> SaveAs("GenZ_ptnoZero_eta.pdf");
 //c30-> SaveAs("GenZ_ptnoZero_pt.pdf");
 //c32-> SaveAs("GenZ_ptnoZero_phi.pdf");
 //c33-> SaveAs("GenZ_ptnoZero_energy.pdf");
-c34-> SaveAs("Gen_e_pt1.pdf");
-c35-> SaveAs("Gen_e_pt2.pdf");
-c36-> SaveAs("pt1_vs_pt2.pdf");
-c37-> SaveAs("eta1_vs_eta2.pdf");
+//c34-> SaveAs("Gen_e_pt1.pdf");
+//c35-> SaveAs("Gen_e_pt2.pdf");
+//c36-> SaveAs("pt1_vs_pt2.pdf");
+//c37-> SaveAs("eta1_vs_eta2.pdf");
 
+c38-> SaveAs("ieta_ele1.pdf");
+c39-> SaveAs("ieta_ele2.pdf");
+c40-> SaveAs("iphi_ele1.pdf");
+c41-> SaveAs("iphi_ele2.pdf");
+c42-> SaveAs("energy_ele1.pdf");
+c43-> SaveAs("energy_ele2.pdf");
 
 c2->cd();
 h_Z_pt->GetYaxis()->SetTitle("log(Y)");
@@ -582,7 +641,7 @@ c5->SetTitle("energy distribution in log scale of Z boson");
      h_Z_Truth_e_Pt->GetYaxis()->SetTitle("log(Y)");
      h_Z_Truth_e_Pt->Draw();
      c22->SetLogy();
-     c22->SaveAs("GenZ_log_pt.pdf");
+ //    c22->SaveAs("GenZ_log_pt.pdf");
 
      c23->cd();
      h_Z_Truth_e_Eta->GetYaxis()->SetTitle("log(Y)");
@@ -600,7 +659,7 @@ c5->SetTitle("energy distribution in log scale of Z boson");
      h_Z_Truth_e_E->GetYaxis()->SetTitle("log(Y)");
      h_Z_Truth_e_E->Draw();
      c25->SetLogy();
-     c25->SaveAs("GenZ_log_E.pdf");
+ //    c25->SaveAs("GenZ_log_E.pdf");
 
      c26->cd();
      h_Z_Truth_all_Pt->GetYaxis()->SetTitle("log(Y)");
@@ -654,13 +713,13 @@ c5->SetTitle("energy distribution in log scale of Z boson");
      h_pt_e1->GetYaxis()->SetTitle("log(Y)");
      h_pt_e1->Draw();
      c34->SetLogy();
-     c34->SaveAs("e_log_pt1.pdf");
+//     c34->SaveAs("e_log_pt1.pdf");
     
      c35->cd();
      h_pt_e2->GetYaxis()->SetTitle("log(Y)");
      h_pt_e2->Draw();
      c35->SetLogy();
-     c35->SaveAs("e_log_pt2.pdf");
+//     c35->SaveAs("e_log_pt2.pdf");
 
   if (!fChain) return;
   delete fChain->GetCurrentFile();
